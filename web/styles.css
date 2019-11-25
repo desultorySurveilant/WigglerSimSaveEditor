@@ -7,8 +7,10 @@ html, body {
   padding: 0;
   font-family: 'Roboto', sans-serif;
 }
-
+div > label {
+  flex-basis: 50%;
+}
 #output {
   padding: 20px;
-  text-align: center;
+  white-space: pre-wrap;
 }
