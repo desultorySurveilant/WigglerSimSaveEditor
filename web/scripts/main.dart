@@ -8,6 +8,13 @@ void main() {
   output.append(FileUploader());
   output.appendHtml("<br/>");
   output.append(SaveEditor());
+//  TextAreaElement saveDisplay = TextAreaElement();
+//  output.append(saveDisplay);
+//  ButtonElement showSave = ButtonElement();
+//  showSave.onClick.listen((_){
+//    saveDisplay.value = jsonEncode(save);
+//  });
+//  output.append(showSave);
 }
 
 DivElement SaveEditor(){
@@ -44,13 +51,55 @@ DivElement PetList(){
   return petList;
 }
 DivElement PetDiv(Map pet){
-  DivElement petDiv = DivElement()..style.padding = "10px"..style.border = "1px solid black";
-
+  DivElement petDiv = DivElement()
+    ..style.display = "flex"..style.flexWrap = "wrap"
+    ..style.padding = "10px"..style.border = "1px solid black";
+  petDiv.append(GenericInput(pet, "nameJSON", "Name: "));
+  petDiv.append(TypeInput(pet, "TYPE", "Type: ", false));
+  petDiv.append(BoolInput(pet, "isempress", "isEmpress: "));
+  petDiv.append(BoolInput(pet, "corrupt", "Corrupt: "));
+  petDiv.append(BoolInput(pet, "purified", "Purified: "));
+  petDiv.append(GenericInput(pet, "healthJson", "Health: ", number: true));
+  petDiv.append(GenericInput(pet, "hatchDate", "Hatch Date: "));
+  petDiv.append(GenericInput(pet, "boredomJson", "Boredom: ", number: true));
+  petDiv.append(GenericInput(pet, "lastPlayed", "Last Played: ", number: true));
+  petDiv.append(GenericInput(pet, "lastFed", "Last Fed: ", number: true));
+  petDiv.append(GenericInput(pet, "patience", "Patient/Impatient: ", number: true));
+  petDiv.append(GenericInput(pet, "idealistic", "Idealistic/Realistic: ", number: true));
+  petDiv.append(GenericInput(pet, "curious", "Curious/Accepting: ", number: true));
+  petDiv.append(GenericInput(pet, "loyal", "Loyal/Free-spirited: ", number: true));
+  petDiv.append(GenericInput(pet, "energetic", "Energetic/Calm: ", number: true));
+  petDiv.append(GenericInput(pet, "external", "External/Internal: ", number: true));
   return petDiv;
 }
+LabelElement TypeInput(Map source, String loc, String text, bool showAdult){
+  LabelElement label = LabelElement()..text = text..style.flexBasis = "25%";
+  SelectElement input = SelectElement();
+  input.append(OptionElement()..value = "EGG"..text = "Egg");
+  input.append(OptionElement()..value = "GRUB"..text = "Grub");
+  input.append(OptionElement()..value = "TREEBAB"..text = "Treebab");
+  input.append(OptionElement()..value = "COCOON"..text = "Cocoon");
+  if(showAdult){
+    input.append(OptionElement()..value = "TROLL"..text = "Troll");
+  }
+  input.value = source[loc];
+  label.append(input);
+  return label;
+}
+LabelElement BoolInput(Map source, String loc, String text){
+  LabelElement label = LabelElement()..text = text..style.flexBasis = "25%";
+  bool b = source[loc] == "true" ? true : false;
+  InputElement input =  CheckboxInputElement()..checked = b;
+  input.onChange.listen((e){
+    source[loc] = input.checked;
+  });
+  label.append(input);
+  return label;
+}
 LabelElement GenericInput(Map source, String loc, String text, {number = false}){
-  LabelElement label = LabelElement()..text = text;
+  LabelElement label = LabelElement()..text = text..style.display = "flex";
   InputElement input = number ? NumberInputElement() : TextInputElement();
+  input.style.flex = "99";
   input.value = source[loc];
   input.onChange.listen((e){
     source[loc] = input.value;
