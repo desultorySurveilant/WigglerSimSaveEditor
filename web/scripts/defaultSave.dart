@@ -1,5 +1,5 @@
 String defaultSave = '''{
-"dataString": "UNIMPORTANT:___this is not a real dollstirng, do not use",
+"dataString": "UNIMPORTANT:___this is not a real dollstring, do not use",
 "name": "UNIMPORTANT",
 "lastPlayed": "1515151515151",
 "PetInventory": {

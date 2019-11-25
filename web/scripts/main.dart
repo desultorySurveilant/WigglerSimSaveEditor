@@ -25,11 +25,12 @@ DivElement UniversalSaveBits(){
     ..style.flexDirection = "row"
     ..style.flexWrap = "wrap"
     ..style.padding = "10px";
-  universals.append(CaretakerNameInput());
-  universals.append(LastPlayedInput());
-  universals.append(CaegerInput());
-  universals.append(LastAllowenceInput());
-  universals.append(CaretakerDollInput());
+  //universals.append(CaretakerNameInput());
+  universals.append(GenericInput(save, "name", "Caretaker Name: "));
+  universals.append(GenericInput(save, "lastPlayed", "Last Played: ", number: true));
+  universals.append(GenericInput(save, "caegers", "Caegers: ", number: true));
+  universals.append(GenericInput(save, "lastAllowence", "Last Allowence: ", number: true));
+  universals.append(DollInput(save, "dataString", "Caretaker Dollstring: "));
   return universals;
 }
 DivElement PetList(){
@@ -47,54 +48,28 @@ DivElement PetDiv(Map pet){
 
   return petDiv;
 }
-LabelElement CaretakerNameInput(){
-  LabelElement nameLabel = LabelElement() ..text = "Caretaker Name: ";
-  TextInputElement nameInput = TextInputElement()..value = save["name"];
-  nameInput.onChange.listen((e){
-    save["name"] = nameInput.value;
+LabelElement GenericInput(Map source, String loc, String text, {number = false}){
+  LabelElement label = LabelElement()..text = text;
+  InputElement input = number ? NumberInputElement() : TextInputElement();
+  input.value = source[loc];
+  input.onChange.listen((e){
+    source[loc] = input.value;
   });
-  nameLabel.append(nameInput);
-  return nameLabel;
+  label.append(input);
+  return label;
 }
-LabelElement CaretakerDollInput(){
-  LabelElement caretakerDollLabel = LabelElement()
-    ..text = "Caretaker Dollstring: "
+LabelElement DollInput(Map source, String loc, String text){
+  LabelElement label = LabelElement()
+    ..text = text
     ..style.display = "flex"
     ..style.flexBasis = "100%";
-  TextAreaElement caretakeDollInput = TextAreaElement()
-    ..value = save["dataString"]
+  TextAreaElement input = TextAreaElement()
+    ..value = source[loc]
     ..rows = 3
     ..cols = 60
     ..style.wordBreak = "break-all";
-  caretakeDollInput.onChange.listen((e){
-    save["dataString"] = caretakeDollInput.value;
-  });
-  caretakerDollLabel.append(caretakeDollInput);
-  return caretakerDollLabel;
-}
-LabelElement LastPlayedInput(){
-  LabelElement LPLabel = LabelElement() ..text = "Last Played: ";
-  NumberInputElement LPInput = NumberInputElement()..value = save["lastPlayed"];
-  LPInput.onChange.listen((e){
-    save["lastPlayed"] = LPInput.value;
-  });
-  LPLabel.append(LPInput);
-  return LPLabel;
-}
-LabelElement CaegerInput(){
-  LabelElement caegerLabel = LabelElement() ..text = "Caegers: ";
-  NumberInputElement caegerInput = NumberInputElement()..value = save["caegers"];
-  caegerInput.onChange.listen((e){
-    save["caegers"] = caegerInput.value;
-  });
-  caegerLabel.append(caegerInput);
-  return caegerLabel;
-}
-LabelElement LastAllowenceInput(){
-  LabelElement label = LabelElement() ..text = "Last Allowence: ";
-  NumberInputElement input = NumberInputElement()..value = save["lastAllowence"];
-  label.onChange.listen((e){
-    save["lastAllowence"] = input.value;
+  input.onChange.listen((e){
+    source[loc] = input.value;
   });
   label.append(input);
   return label;
