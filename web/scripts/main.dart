@@ -8,13 +8,13 @@ void main() {
   output.append(FileUploader());
   output.appendHtml("<br/>");
   output.append(SaveEditor());
-//  TextAreaElement saveDisplay = TextAreaElement();
-//  output.append(saveDisplay);
-//  ButtonElement showSave = ButtonElement();
-//  showSave.onClick.listen((_){
-//    saveDisplay.value = jsonEncode(save);
-//  });
-//  output.append(showSave);
+  TextAreaElement saveDisplay = TextAreaElement();
+  output.append(saveDisplay);
+  ButtonElement showSave = ButtonElement();
+  showSave.onClick.listen((_){
+    saveDisplay.value = jsonEncode(save);
+  });
+  output.append(showSave);
 }
 
 DivElement SaveEditor(){
@@ -70,6 +70,9 @@ DivElement PetDiv(Map pet){
   petDiv.append(GenericInput(pet, "loyal", "Loyal/Free-spirited: ", number: true));
   petDiv.append(GenericInput(pet, "energetic", "Energetic/Calm: ", number: true));
   petDiv.append(GenericInput(pet, "external", "External/Internal: ", number: true));
+  petDiv.append(ListInput(pet, "remembered", "Remembered Items: ", number: true));
+  petDiv.append(ListInput(pet, "rememberedNames", "Remembered Names: "));
+  petDiv.append(ListInput(pet, "rememberedCastes", "Remembered Castes: "));
   return petDiv;
 }
 LabelElement TypeInput(Map source, String loc, String text, bool showAdult){
@@ -107,15 +110,30 @@ LabelElement GenericInput(Map source, String loc, String text, {number = false})
   label.append(input);
   return label;
 }
+LabelElement ListInput(Map source, String loc, String text, {number = false}){
+  LabelElement label = LabelElement()
+    ..text = text
+    ..style.display = "flex"
+    ..style.flexWrap = "wrap"
+    ..style.flexBasis = "100%";
+  List l = source[loc];
+  for(int i = 0; i < l.length; i++){
+    InputElement input = number ? NumberInputElement() : TextInputElement();
+    input.value = l[i];
+    input.onChange.listen((e){
+      l[i] = input.value;
+    });
+    label.append(input);
+  }
+  return label;
+}
 LabelElement DollInput(Map source, String loc, String text){
   LabelElement label = LabelElement()
     ..text = text
     ..style.display = "flex"
     ..style.flexBasis = "100%";
   TextAreaElement input = TextAreaElement()
-    ..value = source[loc]
-    ..rows = 3
-    ..cols = 60
+    ..style.flex = "99"
     ..style.wordBreak = "break-all";
   input.onChange.listen((e){
     source[loc] = input.value;
