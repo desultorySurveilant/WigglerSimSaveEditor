@@ -24,6 +24,7 @@ DivElement SaveEditor(){
     ..id = "editor";
   editor.append(UniversalSaveBits());
   editor.append(PetList());
+  editor.append(AlumList());
   return editor;
 }
 DivElement UniversalSaveBits(){
@@ -32,7 +33,6 @@ DivElement UniversalSaveBits(){
     ..style.flexDirection = "row"
     ..style.flexWrap = "wrap"
     ..style.padding = "10px";
-  //universals.append(CaretakerNameInput());
   universals.append(GenericInput(save, "name", "Caretaker Name: "));
   universals.append(GenericInput(save, "lastPlayed", "Last Played: ", number: true));
   universals.append(GenericInput(save, "caegers", "Caegers: ", number: true));
@@ -49,6 +49,16 @@ DivElement PetList(){
     petList.append(PetDiv(pet));
   }
   return petList;
+}
+DivElement AlumList(){
+  DivElement alumList = DivElement()
+    ..style.display = "flex"
+    ..style.flexDirection = "column"
+    ..style.padding = "10px";
+  for(Map alum in save["PetInventory"]["alumni"]){
+    alumList.append(AlumDiv(alum));
+  }
+  return alumList;
 }
 DivElement PetDiv(Map pet){
   DivElement petDiv = DivElement()
@@ -70,10 +80,17 @@ DivElement PetDiv(Map pet){
   petDiv.append(GenericInput(pet, "loyal", "Loyal/Free-spirited: ", number: true));
   petDiv.append(GenericInput(pet, "energetic", "Energetic/Calm: ", number: true));
   petDiv.append(GenericInput(pet, "external", "External/Internal: ", number: true));
-  petDiv.append(ListInput(pet, "remembered", "Remembered Items: ", number: true));
-  petDiv.append(ListInput(pet, "rememberedNames", "Remembered Names: "));
-  petDiv.append(ListInput(pet, "rememberedCastes", "Remembered Castes: "));
+//  petDiv.append(ListInput(pet, "remembered", "Remembered Items: ", number: true));
+//  petDiv.append(ListInput(pet, "rememberedNames", "Remembered Names: "));
+//  petDiv.append(ListInput(pet, "rememberedCastes", "Remembered Castes: "));
+  petDiv.append(DollInput(pet, "dollDATAURL", "Doll: "));
   return petDiv;
+}
+DivElement AlumDiv(Map alum){
+  DivElement alumDiv = PetDiv(alum);
+  alumDiv.children[1].replaceWith(TypeInput(alum, "TYPE", "Type: ", true));
+  alumDiv.append(BigTextInput(alum, "epilogue", "Epilogue: ", 4));
+  return alumDiv;
 }
 LabelElement TypeInput(Map source, String loc, String text, bool showAdult){
   LabelElement label = LabelElement()..text = text..style.flexBasis = "25%";
@@ -127,20 +144,6 @@ LabelElement ListInput(Map source, String loc, String text, {number = false}){
   }
   return label;
 }
-LabelElement DollInput(Map source, String loc, String text){
-  LabelElement label = LabelElement()
-    ..text = text
-    ..style.display = "flex"
-    ..style.flexBasis = "100%";
-  TextAreaElement input = TextAreaElement()
-    ..style.flex = "99"
-    ..style.wordBreak = "break-all";
-  input.onChange.listen((e){
-    source[loc] = input.value;
-  });
-  label.append(input);
-  return label;
-}
 InputElement FileUploader(){
   InputElement fileElement = InputElement()..type = "file"..style.textAlign = "center";
   fileElement.innerHtml = "Load Save";
@@ -155,6 +158,36 @@ InputElement FileUploader(){
     });
   });
   return fileElement;
+}
+LabelElement DollInput(Map source, String loc, String text){
+  LabelElement label = LabelElement()
+    ..text = text
+    ..style.display = "flex"
+    ..style.flexBasis = "100%";
+  TextAreaElement input = TextAreaElement()
+    ..style.flex = "99"
+    ..style.wordBreak = "break-all";
+  input.value = source[loc];
+  input.onChange.listen((e){
+    source[loc] = input.value;
+  });
+  label.append(input);
+  return label;
+}
+LabelElement BigTextInput(Map source, String loc, String text, [int rows = 2]){
+  LabelElement label = LabelElement()
+    ..text = text
+    ..style.display = "flex"
+    ..style.flexBasis = "100%";
+  TextAreaElement input = TextAreaElement()
+    ..style.flex = "99"
+    ..rows = rows;
+  input.value = source[loc];
+  input.onChange.listen((e){
+    source[loc] = input.value;
+  });
+  label.append(input);
+  return label;
 }
 Map unfuckJson(String saveString){
   Map save = jsonDecode(saveString);
