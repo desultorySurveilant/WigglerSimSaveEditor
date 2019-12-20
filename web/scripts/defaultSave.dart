@@ -2,6 +2,7 @@ String defaultSave = '''{
 "dataString": "UNIMPORTANT:___this is not a real dollstring, do not use",
 "name": "UNIMPORTANT",
 "lastPlayed": "1515151515151",
+"bgIndex": "0",
 "PetInventory": {
 "petsList": [],
 "empress": {
@@ -23,13 +24,10 @@ String defaultSave = '''{
 "energetic": "0",
 "external": "0",
 "remembered": [
-""
 ],
 "rememberedNames": [
-""
 ],
 "rememberedCastes": [
-""
 ],
 "epilogue": "this save has been edit-hacked"
 },

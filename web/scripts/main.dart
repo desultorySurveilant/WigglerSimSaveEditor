@@ -6,14 +6,13 @@ DivElement output = querySelector("#output");
 
 void main() {
   output.append(FileUploader());
+  output.append(FileSaver());
   output.appendHtml("<br/>");
   output.append(SaveEditor());
   TextAreaElement saveDisplay = TextAreaElement();
   output.append(saveDisplay);
   ButtonElement showSave = ButtonElement();
-  showSave.onClick.listen((_){
-    saveDisplay.value = jsonEncode(save);
-  });
+  showSave.onClick.listen((_)=> saveDisplay.value = refuckJson(save));
   output.append(showSave);
 }
 
@@ -23,8 +22,11 @@ DivElement SaveEditor(){
     ..style.width = "700px"
     ..id = "editor";
   editor.append(UniversalSaveBits());
+  if(save["PetInventory"].containsKey("empress"))
+    editor.append(EmpressDiv());
   editor.append(PetList());
   editor.append(AlumList());
+  editor.append(InvList());
   return editor;
 }
 DivElement UniversalSaveBits(){
@@ -33,18 +35,27 @@ DivElement UniversalSaveBits(){
     ..style.flexDirection = "row"
     ..style.flexWrap = "wrap"
     ..style.padding = "10px";
-  universals.append(GenericInput(save, "name", "Caretaker Name: "));
+  universals.append(GenericInput(save, "name", "Caretaker Name: ")..style.flexBasis = "100%");
   universals.append(GenericInput(save, "lastPlayed", "Last Played: ", number: true));
   universals.append(GenericInput(save, "caegers", "Caegers: ", number: true));
   universals.append(GenericInput(save, "lastAllowence", "Last Allowence: ", number: true));
-  universals.append(DollInput(save, "dataString", "Caretaker Dollstring: "));
+  universals.append(GenericInput(save, "bgIndex", "Background: ", number: true));
+  universals.append(DollInput(save, "dataString", "Caretaker Doll: "));
   return universals;
+}
+DivElement EmpressDiv(){
+  DivElement empressDiv = DivElement()
+    ..style.padding = "10px";
+  empressDiv.appendHtml("Empress:");
+  empressDiv.append(AlumDiv(save["PetInventory"]["empress"]));
+  return empressDiv;
 }
 DivElement PetList(){
   DivElement petList = DivElement()
     ..style.display = "flex"
     ..style.flexDirection = "column"
-    ..style.padding = "10px";
+    ..style.padding = "10px"
+    ..appendHtml("Pets:");
   for(Map pet in save["PetInventory"]["petsList"]){
     petList.append(PetDiv(pet));
   }
@@ -54,11 +65,45 @@ DivElement AlumList(){
   DivElement alumList = DivElement()
     ..style.display = "flex"
     ..style.flexDirection = "column"
-    ..style.padding = "10px";
+    ..style.padding = "10px"
+    ..appendHtml("Alumni:");
   for(Map alum in save["PetInventory"]["alumni"]){
     alumList.append(AlumDiv(alum));
   }
   return alumList;
+}
+DivElement InvList(){
+  DivElement invList = DivElement()
+    ..style.display = "flex"
+    ..style.flexDirection = "column"
+    ..style.padding = "10px"
+    ..appendHtml("Items:");
+  for(Map item in save["ItemInventory"]["itemList"]){
+    invList.append(ItemDiv(item));
+  }
+  return invList;
+}
+DivElement ItemDiv(Map item){
+  DivElement itemDiv = DivElement()
+    ..style.display = "flex"..style.flexWrap = "wrap"
+    ..style.padding = "10px"..style.border = "1px solid black";
+  itemDiv.append(GenericInput(item, "id", "ID: ", number: true)..style.flexBasis = "100%");
+  itemDiv.append(GenericInput(item, "patience", "Patient/Impatient: ", number: true));
+  itemDiv.append(GenericInput(item, "idealistic", "Idealistic/Realistic: ", number: true));
+  itemDiv.append(GenericInput(item, "curious", "Curious/Accepting: ", number: true));
+  itemDiv.append(GenericInput(item, "loyal", "Loyal/Free-spirited: ", number: true));
+  itemDiv.append(GenericInput(item, "energetic", "Energetic/Calm: ", number: true));
+  itemDiv.append(GenericInput(item, "external", "External/Internal: ", number: true));
+  itemDiv.appendHtml("Appearances: ");
+  DivElement appDiv = DivElement()
+    ..style.display = "flex"..style.flexWrap = "wrap"..style.flexBasis = "100%"
+    ..style.padding = "10px"..style.border = "1px solid black";
+  for(int i = 0; i < item["itemAppearances"].length; i++){
+    appDiv.append(GenericInput(item["itemAppearances"][i], "name", "Name $i: "));
+    appDiv.append(GenericInput(item["itemAppearances"][i], "imageLoc", "Image $i: "));
+  }
+  itemDiv.append(appDiv);
+  return itemDiv;
 }
 DivElement PetDiv(Map pet){
   DivElement petDiv = DivElement()
@@ -116,7 +161,7 @@ LabelElement BoolInput(Map source, String loc, String text){
   label.append(input);
   return label;
 }
-LabelElement GenericInput(Map source, String loc, String text, {number = false}){
+LabelElement GenericInput(Map source, Object loc, String text, {number = false}){
   LabelElement label = LabelElement()..text = text..style.display = "flex";
   InputElement input = number ? NumberInputElement() : TextInputElement();
   input.style.flex = "99";
@@ -189,24 +234,37 @@ LabelElement BigTextInput(Map source, String loc, String text, [int rows = 2]){
   label.append(input);
   return label;
 }
+AnchorElement FileSaver(){
+  AnchorElement saver = AnchorElement()
+    ..innerHtml = "Save edited file"
+    ..target = "_blank"
+    ..download = "editedWigglerSimSave.txt"
+    ..href = "";//UriData.fromString(refuckJson(save), mimeType: "text/plain", encoding: Utf8Codec());
+  return saver;
+}
 Map unfuckJson(String saveString){
   Map save = jsonDecode(saveString);
   save["PetInventory"] = jsonDecode(save["PetInventory"]);
   save["PetInventory"]["petsList"] = jsonDecode(save["PetInventory"]["petsList"]) as List;
-  save["PetInventory"]["empress"] = jsonDecode(save["PetInventory"]["empress"]);
   save["PetInventory"]["alumni"] = jsonDecode(save["PetInventory"]["alumni"]) as List;
   for(Map pet in save["PetInventory"]["petsList"]){
     pet["remembered"] = parseJsonList(pet["remembered"]);
     pet["rememberedNames"] = parseJsonList(pet["rememberedNames"]);
     pet["rememberedCastes"] = parseJsonList(pet["rememberedCastes"]);
-  }{//empress
-    save["PetInventory"]["empress"]["remembered"] = parseJsonList(save["PetInventory"]["empress"]["remembered"]);
-    save["PetInventory"]["empress"]["rememberedNames"] = parseJsonList(save["PetInventory"]["empress"]["rememberedNames"]);
-    save["PetInventory"]["empress"]["rememberedCastes"] = parseJsonList(save["PetInventory"]["empress"]["rememberedCastes"]);
-  }for(Map alum in save["PetInventory"]["alumni"]){
+  }
+  for(Map alum in save["PetInventory"]["alumni"]){
     alum["remembered"] = parseJsonList(alum["remembered"]);
     alum["rememberedNames"] = parseJsonList(alum["rememberedNames"]);
     alum["rememberedCastes"] = parseJsonList(alum["rememberedCastes"]);
+  }
+  if(save["PetInventory"].containsKey("empress")){
+    save["PetInventory"]["empress"] = jsonDecode(save["PetInventory"]["empress"]);
+    save["PetInventory"]["empress"]["remembered"] =
+        parseJsonList(save["PetInventory"]["empress"]["remembered"]);
+    save["PetInventory"]["empress"]["rememberedNames"] =
+        parseJsonList(save["PetInventory"]["empress"]["rememberedNames"]);
+    save["PetInventory"]["empress"]["rememberedCastes"] =
+        parseJsonList(save["PetInventory"]["empress"]["rememberedCastes"]);
   }
   save["ItemInventory"] = jsonDecode(save["ItemInventory"]);
   save["ItemInventory"]["itemList"] = jsonDecode(save["ItemInventory"]["itemList"]) as List;
@@ -217,4 +275,46 @@ Map unfuckJson(String saveString){
 }
 List<String> parseJsonList(String jsonList){
   return jsonList.substring(1, jsonList.length - 1).split(", ");
+}
+String refuckJson(Map save){
+  Map ret = {};
+  ret["dataString"] = save["dataString"];
+  ret["name"] = save["name"];
+  ret["bgIndex"] = save["bgIndex"];
+  ret["lastPlayed"] = save["lastPlayed"];
+  ret["PetInventory"] = jsonPetInv(save["PetInventory"]);
+  ret["ItemInventory"] = save["ItemInventory"];//jsonItemInv(save["ItemInventory"]);
+  ret["caegers"] = save["caegers"];
+  ret["lastAllowence"] = save["lastAllowence"];
+  return jsonEncode(ret);
+}
+String jsonPetInv(Map petInv){
+  String ret = "{";
+  ret += '"petsList":"${jsonPetsList(petInv["petsList"])}",';
+  if(save["PetInventory"].containsKey("empress")){
+    ret += '"empress":"${petToJson(save["PetInventory"]["empress"])}",';
+  }
+  ret += '"alumni":"${jsonPetsList(petInv["alumni"])}"';
+  ret += '}';
+  return ret;
+}
+String jsonPetsList(List petsList){
+  List<String> ret = [];
+  for(Map pet in petsList){
+    ret.add(petToJson(pet));
+  }
+  return ret.toString();
+}
+String petToJson(Map pet) {
+  String ret = "{";
+  for (String k in pet.keys) {
+    ret += '"$k":"${pet[k].toString()}",';
+  }
+  ret = ret.substring(0, ret.length - 1);
+  ret += "}";
+  ret = ret.replaceAll('\n','\\n');
+  return ret.replaceAll(r'\', r'\\').replaceAll(r'"', r'\"').replaceAll(r'[', r'{').replaceAll(r']', r'}');
+}
+String jsonItemInv(Map ItemInventory){
+  return r'{"itemList":"[]"}';
 }
