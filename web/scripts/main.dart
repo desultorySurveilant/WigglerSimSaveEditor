@@ -283,7 +283,7 @@ String refuckJson(Map save){
   ret["bgIndex"] = save["bgIndex"];
   ret["lastPlayed"] = save["lastPlayed"];
   ret["PetInventory"] = jsonPetInv(save["PetInventory"]);
-  ret["ItemInventory"] = save["ItemInventory"];//jsonItemInv(save["ItemInventory"]);
+  ret["ItemInventory"] = jsonItemInv(save["ItemInventory"]);
   ret["caegers"] = save["caegers"];
   ret["lastAllowence"] = save["lastAllowence"];
   return jsonEncode(ret);
@@ -315,6 +315,30 @@ String petToJson(Map pet) {
   ret = ret.replaceAll('\n','\\n');
   return ret.replaceAll(r'\', r'\\').replaceAll(r'"', r'\"').replaceAll(r'[', r'{').replaceAll(r']', r'}');
 }
-String jsonItemInv(Map ItemInventory){
-  return r'{"itemList":"[]"}';
+String jsonItemInv(Map inv){
+  String ret = "";
+  ret += r'{"itemList":"';
+  List<String> itemList = [];
+  for(Map item in inv["itemList"]){
+    itemList.add(itemToJson(item));
+  }
+  ret += itemList.toString();
+  ret += r'"}';
+  return ret.toString();
+}
+String itemToJson(Map item){
+  String ret = "{";
+  for (String k in item.keys) {
+    if(k != "itemAppearances")
+      ret += '"$k":"${item[k].toString()}",';
+  }
+  List itemApp = [];
+  for (Map app in item["itemAppearances"]){
+    itemApp.add('{\\\"imageLoc\\\":\\\"${app["imageLoc"]}\\\",\\\"name\\\":\\\"${app["name"]}\\\"}');
+  }
+  ret += '\"itemAppearances\":\"${itemApp.toString()}\"}';
+  ret = ret.substring(0, ret.length - 1);
+  ret += "}";
+  return ret.replaceAll(r'\', r'\\').replaceAll(r'"', r'\"');
+
 }
