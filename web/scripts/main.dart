@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:html';
-import 'defaultSave.dart';
-Map save = jsonDecode(defaultSave);
+import 'defaultSave.dart' as placeholder;
+Map save = placeholder.save;
 DivElement output = querySelector("#output");
 
 void main() {
@@ -24,7 +24,7 @@ DivElement SaveEditor(){
   editor.append(UniversalSaveBits());
   if(save["PetInventory"].containsKey("empress"))
     editor.append(EmpressDiv());
-  editor.append(PetList());
+  editor.append(PetList(save["PetInventory"]["petsList"]));
   editor.append(AlumList());
   editor.append(InvList());
   return editor;
@@ -50,15 +50,24 @@ DivElement EmpressDiv(){
   empressDiv.append(AlumDiv(save["PetInventory"]["empress"]));
   return empressDiv;
 }
-DivElement PetList(){
+DivElement PetList(List petsList){
   DivElement petList = DivElement()
     ..style.display = "flex"
     ..style.flexDirection = "column"
     ..style.padding = "10px"
-    ..appendHtml("Pets:");
-  for(Map pet in save["PetInventory"]["petsList"]){
+    ..appendHtml("Pets:")
+    ..id = "PetList";
+  for(Map pet in petsList){
     petList.append(PetDiv(pet));
   }
+  petList.append(
+    ButtonElement()
+      ..innerHtml = "[+]"
+      ..onClick.listen((_) {
+        petsList.add(placeholder.pet);
+        querySelector("#PetList").replaceWith(PetList(petsList));
+      })
+  );
   return petList;
 }
 DivElement AlumList(){
@@ -340,5 +349,4 @@ String itemToJson(Map item){
   ret = ret.substring(0, ret.length - 1);
   ret += "}";
   return ret.replaceAll(r'\', r'\\').replaceAll(r'"', r'\"');
-
 }
