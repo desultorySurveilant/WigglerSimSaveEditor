@@ -9,7 +9,7 @@ void main() {
   output.append(FileSaver());
   output.appendHtml("<br/>");
   output.append(SaveEditor());
-  TextAreaElement saveDisplay = TextAreaElement();
+  TextAreaElement saveDisplay = TextAreaElement()..rows = 10..cols = 50;
   output.append(saveDisplay);
   ButtonElement showSave = ButtonElement();
   showSave.onClick.listen((_)=> saveDisplay.value = refuckJson(save));
@@ -21,15 +21,14 @@ DivElement SaveEditor(){
     ..style.border = "1px solid black"
     ..style.width = "700px"
     ..id = "editor";
-  editor.append(UniversalSaveBits());
-  if(save["PetInventory"].containsKey("empress"))
-    editor.append(EmpressDiv());
+  editor.append(UniversalSaveBits(save));
+  editor.append(EmpressDiv(save["PetInventory"]));
   editor.append(PetList(save["PetInventory"]["petsList"]));
-  editor.append(AlumList());
-  editor.append(InvList());
+  editor.append(AlumList(save["PetInventory"]["alumni"]));
+  editor.append(InvList(save["ItemInventory"]["itemList"]));
   return editor;
 }
-DivElement UniversalSaveBits(){
+DivElement UniversalSaveBits(Map save){
   DivElement universals = DivElement()
     ..style.display = "flex"
     ..style.flexDirection = "row"
@@ -43,11 +42,30 @@ DivElement UniversalSaveBits(){
   universals.append(DollInput(save, "dataString", "Caretaker Doll: "));
   return universals;
 }
-DivElement EmpressDiv(){
+DivElement EmpressDiv(Map petInv){
   DivElement empressDiv = DivElement()
     ..style.padding = "10px";
   empressDiv.appendHtml("Empress:");
-  empressDiv.append(AlumDiv(save["PetInventory"]["empress"]));
+  if(petInv.containsKey("empress")){
+    empressDiv.append(AlumDiv(petInv["empress"]));
+    empressDiv.append(ButtonElement()
+      ..style.display = "block"..style.width = "100%"
+      ..innerHtml = "Remove Empress"
+      ..onClick.listen((_){
+        petInv.remove("empress");
+        empressDiv.replaceWith(EmpressDiv(petInv));
+      })
+    );
+  }else{
+    empressDiv.append(ButtonElement()
+      ..style.display = "block"..style.width = "100%"
+      ..innerHtml = "Add Empress"
+      ..onClick.listen((_){
+        petInv["empress"] = placeholder.empress;
+        empressDiv.replaceWith(EmpressDiv(petInv));
+      })
+    );
+  }
   return empressDiv;
 }
 DivElement PetList(List petsList){
@@ -58,36 +76,35 @@ DivElement PetList(List petsList){
     ..appendHtml("Pets:")
     ..id = "PetList";
   for(Map pet in petsList){
-    petList.append(PetDiv(pet));
+    petList.append(PetDiv(pet, petsList));
   }
-  petList.append(
-    ButtonElement()
-      ..innerHtml = "[+]"
+  petList.append(ButtonElement()
+      ..innerHtml = "[+]" ..id = "addPetButton"
       ..onClick.listen((_) {
         petsList.add(placeholder.pet);
-        querySelector("#PetList").replaceWith(PetList(petsList));
+        petList.insertBefore(PetDiv(placeholder.pet, petsList), querySelector('#addPetButton'));
       })
   );
   return petList;
 }
-DivElement AlumList(){
+DivElement AlumList(List alumni){
   DivElement alumList = DivElement()
     ..style.display = "flex"
     ..style.flexDirection = "column"
     ..style.padding = "10px"
     ..appendHtml("Alumni:");
-  for(Map alum in save["PetInventory"]["alumni"]){
+  for(Map alum in alumni){
     alumList.append(AlumDiv(alum));
   }
   return alumList;
 }
-DivElement InvList(){
+DivElement InvList(List itemList){
   DivElement invList = DivElement()
     ..style.display = "flex"
     ..style.flexDirection = "column"
     ..style.padding = "10px"
     ..appendHtml("Items:");
-  for(Map item in save["ItemInventory"]["itemList"]){
+  for(Map item in itemList){
     invList.append(ItemDiv(item));
   }
   return invList;
@@ -114,7 +131,7 @@ DivElement ItemDiv(Map item){
   itemDiv.append(appDiv);
   return itemDiv;
 }
-DivElement PetDiv(Map pet){
+DivElement PetDiv(Map pet, [List parent]){
   DivElement petDiv = DivElement()
     ..style.display = "flex"..style.flexWrap = "wrap"
     ..style.padding = "10px"..style.border = "1px solid black";
@@ -138,6 +155,18 @@ DivElement PetDiv(Map pet){
 //  petDiv.append(ListInput(pet, "rememberedNames", "Remembered Names: "));
 //  petDiv.append(ListInput(pet, "rememberedCastes", "Remembered Castes: "));
   petDiv.append(DollInput(pet, "dollDATAURL", "Doll: "));
+  if(parent != null){
+    petDiv.append(
+        ButtonElement()
+          ..innerHtml = "Remove Pet"..style.flexBasis = "100%"
+          ..onClick.listen((_) {
+            if(window.confirm("Are you sure you want to remove this pet?")){
+              parent.remove(pet);
+              petDiv.remove();
+            }
+          })
+    );
+  }
   return petDiv;
 }
 DivElement AlumDiv(Map alum){
@@ -243,12 +272,15 @@ LabelElement BigTextInput(Map source, String loc, String text, [int rows = 2]){
   label.append(input);
   return label;
 }
-AnchorElement FileSaver(){
-  AnchorElement saver = AnchorElement()
-    ..innerHtml = "Save edited file"
-    ..target = "_blank"
-    ..download = "editedWigglerSimSave.txt"
-    ..href = "";//UriData.fromString(refuckJson(save), mimeType: "text/plain", encoding: Utf8Codec());
+ButtonElement FileSaver(){
+  ButtonElement saver = ButtonElement()
+    ..innerHtml = "Download Save"
+    ..onClick.listen((_){
+      AnchorElement hax = AnchorElement()
+        ..setAttribute("download", "edited_wigglersim_save.txt");
+      hax.href = "data:text/plain;charset=utf-8, ${refuckJson(save)}";
+      hax.click();
+    });
   return saver;
 }
 Map unfuckJson(String saveString){
@@ -338,8 +370,9 @@ String jsonItemInv(Map inv){
 String itemToJson(Map item){
   String ret = "{";
   for (String k in item.keys) {
-    if(k != "itemAppearances")
+    if(k != "itemAppearances"){
       ret += '"$k":"${item[k].toString()}",';
+    }
   }
   List itemApp = [];
   for (Map app in item["itemAppearances"]){
